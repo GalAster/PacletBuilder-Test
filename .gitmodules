@@ -1,0 +1,3 @@
+[submodule "Repos/BilibiliLink/source"]
+	path = Repos/BilibiliLink/source
+	url = git@github.com:Moe-Net/BilibiliLink.git
