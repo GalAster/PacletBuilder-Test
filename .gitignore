@@ -3,3 +3,7 @@
 .idea/*
 
 *.nb
+
+# build 临时目录
+/temp/
+paclet.log.m
