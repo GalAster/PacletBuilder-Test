@@ -6,6 +6,13 @@ download all
 git clone --recursive <this>
 ```
 
+update all
+
+```bash
+git submodule update --recursive
+```
+
+
 
 
 add one from github repo
@@ -23,6 +30,12 @@ git submodule update --remote
 ```
 
 
+ remove
+
+
+```bash
+git submodule deinit --force <path>
+```
 
 
 git submodule add git@github.com:Moe-Net/BilibiliLink.git Repos/BilibiliLink/source
