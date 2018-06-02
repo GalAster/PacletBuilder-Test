@@ -1,6 +1,3 @@
-[submodule "repos/MaTeX/source"]
-	path = repos/MaTeX/source
-	url = https://github.com/szhorvat/MaTeX.git
 [submodule "Repos/BilibiliLink/source"]
 	path = Repos/BilibiliLink/source
 	url = git@github.com:Moe-Net/BilibiliLink.git
