@@ -6,7 +6,7 @@
 
 - **"DownloadOnce"**
 - **"GithubRepo"**
-
+- **"GithubRelease"**
 
 ## From github repo
 
