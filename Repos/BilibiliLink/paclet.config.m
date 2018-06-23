@@ -7,5 +7,6 @@
         "*.git*"
     },
     Extract->False,
-    Version->True
+    "AutoVersion"->True,
+    "Readme"->False
 |>

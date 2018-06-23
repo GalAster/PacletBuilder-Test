@@ -8,7 +8,7 @@ $here=DirectoryName[$InputFileName/."":>NotebookFileName[]];
 $tasks=FileNames["paclet.config.m",$here,Infinity];
 
 
-(* ::Chapter:: *)
+(* ::Chapter::Closed:: *)
 (*Assist Functions*)
 
 
@@ -19,7 +19,7 @@ DamnDeleteFiles[path_,rules_]:=Quiet@Block[
 	]},
 	DeleteFile[Select[all,FileExistsQ]];
 	DeleteDirectory[Select[all,DirectoryQ,DeleteContents->True]];
-]
+];
 
 
 (* ::Chapter:: *)
@@ -49,12 +49,23 @@ Manualdownload[___]:=Return[];
 (*From Github Release*)
 
 
+GetRelease[owner_,repo_]:=Module[
+	{url=StringTemplate["https://api.github.com/repos/`owner`/`repo`/releases/latest"]},
+	URLExecute[url[<|"owner"->owner,"repo"->repo|>],"RawJson"]
+];
 ReleaseAssetsDownload[url_]:=Block[
 	{path=FileNameJoin@{$here,"Paclets",Last@StringSplit[url,"/"]}},
 	If[FileExistsQ[path],DeleteFile[path]];
-	URLDownloadSubmit[url,CreateFile[path]]
-]
-
+	URLDownloadSubmit[url,CreateFile[path]];
+	Return[path]
+];
+GithubReleastLogInit[path_]:=If[
+	!FileExistsQ@path,
+	Export[path,{<|
+		"CheckTime"->DateObject[0],
+		"DownloadInfo"->"Initialize release log"
+	|>}]
+];
 
 
 (* ::Section:: *)
@@ -64,20 +75,20 @@ ReleaseAssetsDownload[url_]:=Block[
 GetCommit[owner_,repo_,branch_:"master"]:=Module[
 	{url=StringTemplate["https://api.github.com/repos/`owner`/`repo`/commits/`branch`"]},
 	URLExecute[url[<|"owner"->owner,"repo"->repo,"branch"->branch|>],"RawJson"]
-]
+];
+GithubRepoLogInit[path_]:=If[
+	!FileExistsQ@path,
+	Export[path,{<|
+		"CheckTime"->DateObject[0],
+		"BuildInfo"->"Initialize build log",
+		"Version"->"0.0.0"
+	|>}]
+];
 GithubRepoCheck[dir_,repo_List]:=Block[
 	{log,logs,update,last},
-	log=FileNameJoin[{dir,"paclet.log.m"}];
-	If[
-		!FileExistsQ@log,
-		Export[log,{<|
-			"CheckTime"->DateObject[0],
-			"BuildInfo"->"Initialize build log",
-			"Version"->"0.0.0"
-		|>}]
-	];
+	GithubRepoLogInit[log=FileNameJoin[{dir,"paclet.log.m"}]];
 	logs=Import[log];
-	update=DateString[Apply[GetCommit,repo]["commit","committer","date"]];
+	update=DateObject[Apply[GetCommit,repo]["commit","committer","date"]];
 	last=DateObject[First[logs]["CheckTime"]];
 	If[Negative@Subtract[UnixTime@last,UnixTime@update],Return[last]];
 	Export[log,Prepend[logs,<|
@@ -87,7 +98,7 @@ GithubRepoCheck[dir_,repo_List]:=Block[
 		"Version"->"0.0.0"
 	|>]];
 	Return[False]
-]
+];
 VersionPlus[dir_]:=Block[
 	{vlast,vnow,config},
 	vlast=First[Import@FileNameJoin[{dir,"paclet.log.m"}]]["Version"];
@@ -108,7 +119,7 @@ GithubRepo[file_] := Block[
 		$now = Now;
 		dir = DirectoryName[file];
 		ass = Import[file],
-		temp, pack, update, vnow, copy
+		temp, pack, update, vnow, copy,logs
 	},
 	(*Check if need update*)
 	update = GithubRepoCheck[dir, ass[Path]];
@@ -122,7 +133,8 @@ GithubRepo[file_] := Block[
 	If[ass["AutoVersion"] === True, vnow = VersionPlus[dir]];
 	copy = CopyFile[
 		pack = PackPaclet[temp],
-		FileNameJoin[{$here, "Paclets", FileNameTake[pack]}]
+		FileNameJoin[{$here, "Paclets", FileNameTake[pack]}],
+		OverwriteTarget->True
 	];
 	DeleteFile[pack];
 	DeleteDirectory[temp, DeleteContents -> True];

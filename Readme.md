@@ -1,41 +1,40 @@
 
 
-download all
+### Download all
 
 ```bash
 git clone --recursive <this>
 ```
 
-update all
+Do not need `--recursive` unless on a build server.
+
+### Add your repo
+
+```bash
+git submodule add <repo> Repos/<name>/source
+```
+
+Add `-b <branch>` if not use **master**
+
+
+### Update
 
 ```bash
 git submodule update --recursive
 ```
 
 
+### Configs
+
+Do some configs like other projects.
 
 
-add one from github repo
-
-```bash
-git submodule add <repo> Repos/<name>/source
-```
-
-add `-b <branch>` if not use **master**
-
-
-
-```bash
-git submodule update --remote
-```
-
-
- remove
+### Remove
 
 
 ```bash
 git submodule deinit --force <path>
+git rm --cached <path>
 ```
 
-
-git submodule add git@github.com:Moe-Net/BilibiliLink.git Repos/BilibiliLink/source
+Delete both **the file, git config and gitmodules record**.
