@@ -3,7 +3,7 @@
 ### Download all
 
 ```bash
-git clone --recursive <this>
+git clone --recursive git@github.com:paclets/PacletBuilder-Test.git
 ```
 
 Do not need `--recursive` unless on a build server.

@@ -63,9 +63,36 @@ GithubReleastLogInit[path_]:=If[
 	!FileExistsQ@path,
 	Export[path,{<|
 		"CheckTime"->DateObject[0],
-		"DownloadInfo"->"Initialize release log"
+		"ReleaseInfo"->"Initialize release log"
 	|>}]
 ];
+GithubRelease[file_]:=Block[
+	{
+		$now = Now;
+		dir = DirectoryName[file];
+		config = Import[file],
+		api=Apply[GetRelease,ass[Path]]
+	},
+	If[Positive@Subtract[UnixTime@last,UnixTime@update],
+	Echo["No need to update", "Skip: "];
+		Export[log,Prepend[logs,<|
+			"CheckTime"->Now,
+			"LastCommit"->update,
+			"ReleaseInfo"->"No need to update"
+		|>]];
+		Return[]
+	];
+	ReleaseAssetsDownload/@("browser_download_url"/.api["assets"]);
+	Export[FileNameJoin[{dir, "paclet.log.m"}], Prepend[logs, <|
+		"CheckTime" -> $now,
+		"LastCommit" -> update,
+		"BuildInfo" -> <|
+			"url" ->api["html_url"],
+			"TimeUsed" -> Now - $now
+		|>
+	|>]]
+]
+
 
 
 (* ::Section:: *)
@@ -118,11 +145,11 @@ GithubRepo[file_] := Block[
 	{
 		$now = Now;
 		dir = DirectoryName[file];
-		ass = Import[file],
+		config = Import[file],
 		temp, pack, update, vnow, copy,logs
 	},
 	(*Check if need update*)
-	update = GithubRepoCheck[dir, ass[Path]];
+	update = GithubRepoCheck[dir, config[Path]];
 	If[
 		update === False,
 		Echo["No need to update", "Skip: "]; Return[]
@@ -130,7 +157,7 @@ GithubRepo[file_] := Block[
 	temp = CopyDirectory[FileNameJoin[{dir, "source"}],
 		FileNameJoin[{dir, "temp"}]];
 	(*Check if use auto version*)
-	If[ass["AutoVersion"] === True, vnow = VersionPlus[dir]];
+	If[config["AutoVersion"] === True, vnow = VersionPlus[dir]];
 	copy = CopyFile[
 		pack = PackPaclet[temp],
 		FileNameJoin[{$here, "Paclets", FileNameTake[pack]}],
