@@ -8,3 +8,4 @@
 temp/
 paclet.log.*
 *.paclet
+*.mz

@@ -6,6 +6,8 @@
 
 $here = DirectoryName[$InputFileName /. "" :> NotebookFileName[]];
 $tasks = FileNames["paclet.config.m", $here, Infinity];
+$pause = 0;
+$site = "http://math.owo.site";
 
 
 (* ::Chapter::Closed:: *)
@@ -20,6 +22,21 @@ DamnDeleteFiles[path_, rules_] := Quiet@Block[
     DeleteFile[Select[all, FileExistsQ]];
     DeleteDirectory[Select[all, DirectoryQ, DeleteContents -> True]];
 ];
+
+PacletSiteBuild[] := Block[
+    {pkgs, info},
+    pkgs = FileNames["*.paclet", FileNameJoin[{$here, "Paclets"}]];
+    info = (PacletInformation /@ pkgs) /. {
+        ("Location" -> l_) :> ("Location" -> URLBuild[{$site, "paclets", FileNameTake[l]}]),
+        ("Publisher" -> "") :> ("Publisher" -> $site)
+    };
+    Export[
+        FileNameJoin[{$here, "PacletSite.mz"}],
+        <|"PacletSite.m" -> PacletSite @@ Paclet @@@ info|>,
+        {"ZIP", "Rules"}
+    ]
+];
+
 
 
 (* ::Chapter:: *)
@@ -38,14 +55,14 @@ PacletsAutoBuilder[file_] := Switch[
 ];
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*Manual download*)
 
 
 Manualdownload[___] := Return[];
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*From Github Release*)
 
 
@@ -59,7 +76,7 @@ ReleaseAssetsDownload[url_] := Block[
     URLDownloadSubmit[url, CreateFile[path]];
     Return[path]
 ];
-GithubReleastLogInit[path_] := If[
+GithubReleaseLogInit[path_] := If[
     !FileExistsQ@path,
     Export[path, {<|
         "CheckTime" -> DateObject[0],
@@ -74,7 +91,7 @@ GithubRelease[file_] := Block[
         api, logs, update, last
     },
     api = Apply[GetRelease, config[Path]];
-    GithubReleastLogInit[FileNameJoin[{dir, "paclet.log.m"}]];
+    GithubReleaseLogInit[FileNameJoin[{dir, "paclet.log.m"}]];
     logs = Import[FileNameJoin[{dir, "paclet.log.m"}]];
     update = DateObject[api["published_at"]];
     last = DateObject[First[logs]["CheckTime"]];
@@ -100,7 +117,7 @@ GithubRelease[file_] := Block[
 
 
 
-(* ::Section:: *)
+(* ::Section::Closed:: *)
 (*From Github Repo*)
 
 
@@ -180,7 +197,7 @@ GithubRepo[file_] := Block[
         |>,
         "Version" -> vnow
     |>]]
-]
+];
 
 
 (* ::Chapter:: *)
@@ -188,4 +205,10 @@ GithubRepo[file_] := Block[
 
 
 (* ::CodeText:: *)
-(*PacletsAutoBuilder /@ $tasks*)
+(* $do//Activate *)
+
+
+$do = Append[
+    Riffle[Inactive[PacletsAutoBuilder] /@ $tasks, Inactive[Pause][$pause]],
+    Inactive[PacletSiteBuild][]
+]
